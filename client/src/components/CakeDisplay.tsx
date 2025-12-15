@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from "react";
-import type { MatchPosition } from "../common/hooks/use-camera-and-hand-tracking.hook";
+import type { MatchPosition } from "../common/hooks/useCameraAndHandTracking.hook";
 
 type CandleState = "lit" | "unlit";
 

@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useRef, useEffect } from "react";
-import { useCameraAndHandTracking } from "./common/hooks/use-camera-and-hand-tracking.hook";
-import { useBlowDetection } from "./common/hooks/use-blow-detection.hook";
+import { useCameraAndHandTracking } from "./common/hooks/useCameraAndHandTracking.hook";
+import { useBlowDetection } from "./common/hooks/useBlowDetection.hook";
 import CakeDisplay from "./components/CakeDisplay";
 import Webcam from "react-webcam";
 
