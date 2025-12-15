@@ -33,6 +33,7 @@ export const useCameraAndHandTracking = ({
   const detectorRef = useRef<handPoseDetection.HandDetector | null>(null);
   const rafRef = useRef<number | null>(null);
   const isRunningRef = useRef(false);
+  const initAttemptRef = useRef(0);
 
   /* ------------------------------------------------------- */
   /* Detection loop                                          */
@@ -96,11 +97,60 @@ export const useCameraAndHandTracking = ({
 
     const init = async () => {
       try {
-        await tf.setBackend("webgl");
-        await tf.ready();
+        // Wait a bit for the page to fully load
+        if (initAttemptRef.current === 0) {
+          await new Promise((resolve) => setTimeout(resolve, 500));
+        }
+
+        initAttemptRef.current++;
+
+        // Set backend with retry logic
+        try {
+          await tf.setBackend("webgl");
+          await tf.ready();
+        } catch (backendError) {
+          console.warn(
+            "WebGL backend failed, trying CPU backend:",
+            backendError
+          );
+          await tf.setBackend("cpu");
+          await tf.ready();
+        }
 
         if (cancelled) return;
 
+        // Wait for video to be ready
+        const video = webcamRef.current?.video;
+        if (!video) {
+          console.warn("Video element not found, retrying...");
+          if (initAttemptRef.current < 10) {
+            setTimeout(init, 500);
+          }
+          return;
+        }
+
+        // Ensure video is playing
+        if (video.paused) {
+          try {
+            await video.play();
+          } catch (playError) {
+            console.warn("Could not auto-play video:", playError);
+          }
+        }
+
+        // Wait for video dimensions to be available
+        if (video.videoWidth === 0 || video.videoHeight === 0) {
+          console.warn("Video dimensions not ready, waiting...");
+          if (initAttemptRef.current < 10) {
+            setTimeout(init, 500);
+          }
+          return;
+        }
+
+        if (cancelled) return;
+
+        // Create hand detector
+        console.log("Creating hand detector...");
         detectorRef.current = await handPoseDetection.createDetector(
           handPoseDetection.SupportedModels.MediaPipeHands,
           {
@@ -111,23 +161,24 @@ export const useCameraAndHandTracking = ({
           }
         );
 
-        const video = webcamRef.current?.video;
-        if (!video) return;
+        console.log("Hand detector initialized successfully");
 
-        // Ensure the video is playing
-        if (video.paused) {
-          await video.play();
-        }
+        if (cancelled) return;
 
-        if (video.videoWidth === 0) {
-          console.warn("Video not ready yet, waiting...");
-          requestAnimationFrame(init);
-          return;
-        }
-
+        // Start detection loop
         detectHands();
       } catch (err) {
         console.error("Failed to initialize hand tracking:", err);
+
+        // Retry with exponential backoff
+        if (initAttemptRef.current < 5 && !cancelled) {
+          const delay = Math.min(
+            1000 * Math.pow(2, initAttemptRef.current),
+            5000
+          );
+          console.log(`Retrying initialization in ${delay}ms...`);
+          setTimeout(init, delay);
+        }
       }
     };
 
@@ -136,13 +187,17 @@ export const useCameraAndHandTracking = ({
     return () => {
       cancelled = true;
       isRunningRef.current = false;
+      initAttemptRef.current = 0;
 
       if (rafRef.current) {
         cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
       }
 
-      detectorRef.current?.dispose();
-      detectorRef.current = null;
+      if (detectorRef.current) {
+        detectorRef.current.dispose();
+        detectorRef.current = null;
+      }
     };
   }, [detectHands, webcamRef]);
 

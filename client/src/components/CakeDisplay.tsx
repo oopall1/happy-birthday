@@ -89,6 +89,7 @@ const CakeDisplay: React.FC<CakeDisplayProps> = ({
             height: "100px",
             zIndex: 9999,
             pointerEvents: "none",
+            filter: "drop-shadow(0 0 10px rgba(255, 200, 0, 0.8))",
           }}
         />
       )}
