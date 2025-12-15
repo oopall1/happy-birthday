@@ -79,16 +79,16 @@ const App: React.FC = () => {
   }, [candleState, isRelightCoolingDown]);
 
   return (
-    <div className="bg-gray-900">
-      <h1 className="text-3xl font-bold text-yellow-300 mb-6">
-        IBirthday Cake
+    <div className="bg-gray-900 p-4">
+      <h1 className="text-3xl font-bold text-yellow-300 mb-6 text-center">
+        Birthday Cake
       </h1>
-      <div className="min-h-screen flex p-4 justify-center items-center">
+      <div className="min-h-screen flex justify-center items-center">
         <div>
           {/* Camera Feed Section */}
-          <div className="relative w-full max-w-xl mb-6">
+          <div className="relative w-full max-w-xl mb-6 flex flex-col items-center">
             <h2 className="text-lg font-semibold text-white mb-2">
-              Camera Feed (Move your hand to guide the match)
+              Move your hand to guide the match
             </h2>
 
             {/* Webcam component */}

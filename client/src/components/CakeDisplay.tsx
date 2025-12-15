@@ -85,8 +85,8 @@ const CakeDisplay: React.FC<CakeDisplayProps> = ({
             left: `${matchPosition.x}px`,
             top: `${matchPosition.y}px`,
             transform: "translate(-50%, -50%)",
-            width: "200px",
-            height: "200px",
+            width: "100px",
+            height: "100px",
             zIndex: 9999,
             pointerEvents: "none",
           }}
